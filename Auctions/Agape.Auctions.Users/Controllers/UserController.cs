@@ -33,14 +33,22 @@ namespace Agape.Auctions.Users.Controllers
         [HttpGet("Login")]
         public async Task<IActionResult> Login(string userId, string password)
         {
-            User result = await _context.Users
-                .Where(c => c.Email == userId && c.Password == password)
-                .FirstOrDefaultAsync();
+            try
+            {
+                User result = await _context.Users
+                        .Where(c => c.Email == userId && c.Password == password)
+                        .FirstOrDefaultAsync();
 
-            if (result != null)
-                return Ok(result);
-            else
-                return NotFound();
+                if (result != null)
+                    return Ok(result);
+                else
+                    return NotFound();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
         }
 
         // GET: api/<UserController>
@@ -71,7 +79,7 @@ namespace Agape.Auctions.Users.Controllers
         public async Task<User> Get(string id)
         {
             var result = await _context.Users.Include(c => c.Address).FirstOrDefaultAsync(c => c.Id == id);
-            result.PaymentMethods = result.PaymentMethodsString.Split("|").ToList();
+            result.PaymentMethods = result.PaymentMethodsString?.Split("|").ToList();
             if (result.Address != null)
                 result.Address.User = null;
             return result;
@@ -81,16 +89,24 @@ namespace Agape.Auctions.Users.Controllers
         [HttpPost]
         public async Task Post([FromBody] User user)
         {
-            user.PaymentMethodsString = string.Join("|", user.PaymentMethods);
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+            try
+            {
+                user.PaymentMethodsString = (user.PaymentMethods != null && user.PaymentMethods?.Count() > 0) ? string.Join("|", user.PaymentMethods) : null;
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
         }
 
         // PUT api/<UserController>/5
         [HttpPut("{id}")]
         public async Task Put(string id, [FromBody] User user)
         {
-            user.PaymentMethodsString = string.Join("|", user.PaymentMethods);
+            user.PaymentMethodsString = (user.PaymentMethods != null && user.PaymentMethods?.Count() > 0) ? string.Join("|", user.PaymentMethods) : null;
 
             if (user.Address != null)
             {
@@ -124,7 +140,7 @@ namespace Agape.Auctions.Users.Controllers
                 .Where(funcUser)
                 .Include(c => c.Address)
                 .ToListAsync();
-            result[0].PaymentMethods = result[0].PaymentMethodsString.Split("|").ToList();
+            result[0].PaymentMethods = result[0].PaymentMethodsString?.Split("|").ToList();
             if (result[0].Address != null)
                 result[0].Address.User = null;
             return result;

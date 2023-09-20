@@ -48,7 +48,7 @@ namespace Agape.Auctions.Dealers.Controllers
         public async Task<User> Get(string id)
         {
             var result = await _context.Users.Include(c => c.Address).FirstOrDefaultAsync(c => c.Id == id);
-            result.PaymentMethods = result.PaymentMethodsString.Split("|").ToList();
+            result.PaymentMethods = result.PaymentMethodsString?.Split("|").ToList();
             if (result.Address != null)
                 result.Address.User = null;
             return result;
@@ -58,7 +58,7 @@ namespace Agape.Auctions.Dealers.Controllers
         [HttpPost]
         public async Task Post([FromBody] User dealer)
         {
-            dealer.PaymentMethodsString = string.Join("|", dealer.PaymentMethods);
+            dealer.PaymentMethodsString = (dealer.PaymentMethods != null && dealer.PaymentMethods?.Count() > 0) ? string.Join("|", dealer.PaymentMethods) : null;
             await _context.Users.AddAsync(dealer);
             await _context.SaveChangesAsync();
         }
@@ -67,7 +67,7 @@ namespace Agape.Auctions.Dealers.Controllers
         [HttpPut("{id}")]
         public async Task Put(string id, [FromBody] User dealer)
         {
-            dealer.PaymentMethodsString = string.Join("|", dealer.PaymentMethods);
+            dealer.PaymentMethodsString = (dealer.PaymentMethods != null && dealer.PaymentMethods?.Count() > 0) ? string.Join("|", dealer.PaymentMethods) : null;
 
             if (dealer.Address != null)
             {
